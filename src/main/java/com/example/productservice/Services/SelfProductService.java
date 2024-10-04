@@ -7,6 +7,10 @@ import com.example.productservice.Models.Product;
 import com.example.productservice.Repositories.CategoryRepository;
 import com.example.productservice.Repositories.ProductRepository;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service("selfProductService")
+//@Primary
 public class SelfProductService implements ProductService {
     private ProductRepository productRepository;
     private CategoryRepository categoryRepository;
@@ -34,10 +39,19 @@ public class SelfProductService implements ProductService {
     }
 
     @Override
-    public List<Product> getAllProducts() {
-        // here we will bw fetching all the products from our DB
-        return List.of();
+    public Page<Product> getAllProducts(int pageNumber, int pageSize, String sortDir) {
+        // Set up sorting logic based on sort direction
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by("id").ascending() : Sort.by("id").descending();
+
+        // Create a pageable request using page number, page size, and sorting
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        // Fetch paginated products
+        return productRepository.findAll(pageable);
     }
+
+
+
 
     @Override
     public Product updateProduct(Long id,Product product) throws InvalidProductIdException {

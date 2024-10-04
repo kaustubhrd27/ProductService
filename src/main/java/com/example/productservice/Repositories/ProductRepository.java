@@ -4,9 +4,12 @@ package com.example.productservice.Repositories;
 import com.example.productservice.Models.Category;
 import com.example.productservice.Models.Product;
 import com.example.productservice.Projections.ProductWithIdAndTitle;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +25,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     public Optional<Product> findTopThreeByTitle(String title);
     public Optional<Product> findByCategory(Category category);
 
+    @Override
+    Page<Product> findAll(Pageable pageable);
 
     //#DeleteQueries
     void deleteById(long id);
@@ -34,11 +39,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     //HQL Queries
 
-    @Query("select p.id as id,p.title as title from Product p where p.price > 100000 and p.title like '%pro%'")
-    List<ProductWithIdAndTitle> someQuery();
-
-    @Query(value = "select * from product p where p.id = 2", nativeQuery = true)
-    Product doSomethingSql();
+//    @Query("select p.id as id,p.title as title from Product p where p.price > 100000 and p.title like '%pro%'")
+//    List<ProductWithIdAndTitle> someQuery();
+//
+//    @Query(value = "select * from product p where p.id = 2", nativeQuery = true)
+//    Product doSomethingSql();
 
 }
 

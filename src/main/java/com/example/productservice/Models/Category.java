@@ -17,7 +17,7 @@ public class Category extends BasseModel {
     /*@Id
     private Long id;*/
     //if a category is deleted then, I also should delete associated products
-    @OneToMany(mappedBy = "category", cascade = CascadeType.REMOVE)
-    private List<Product> products;
+   /* @OneToMany(mappedBy = "category", cascade = CascadeType.REMOVE)
+    private List<Product> products;*/
     private String title;
 }

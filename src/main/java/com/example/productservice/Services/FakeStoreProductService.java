@@ -6,6 +6,9 @@ import com.example.productservice.Exceptions.InvalidProductIdException;
 import com.example.productservice.Models.Category;
 import com.example.productservice.Models.Product;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,9 +23,11 @@ import java.util.List;
 public class FakeStoreProductService implements ProductService{
 
     private RestTemplate restTemplate;
+    private RedisTemplate redisTemplate;
 
-    public FakeStoreProductService(RestTemplate restTemplate) {
+    public FakeStoreProductService(RestTemplate restTemplate, RedisTemplate redisTemplate) {
         this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     private Product convertFakeProductDtoToProduct(FakeProductDto fakeProductDto) {
@@ -52,14 +57,29 @@ public class FakeStoreProductService implements ProductService{
     @Override
     public Product getProductById(Long id) throws InvalidProductIdException {
         //Here we need to call FakeStore API to get the product with given ID
+        Product product =(Product) redisTemplate.opsForHash().get("PRODUCTS","PRODUCT_" + id);
+        // This retrieves a product from the Redis cache with the key "PRODUCTS" (hash key), and the field "PRODUCT_" + id
+        // Redis stores data in a hash structure where "PRODUCTS" is a hash key, and "PRODUCT_" + id
+
+        if (product != null) {
+            // cache hit
+            return product;
+        }
+        // Cache Miss: If the product is not found in the Redis cache (i.e., product == null),
+        // it calls the external FakeStore API to fetch the product detail
         FakeProductDto fakeProductDto =
                 restTemplate.getForObject("https://fakestoreapi.com/products/" + id, FakeProductDto.class);
 
         if (fakeProductDto == null) {
             throw new InvalidProductIdException(id,"Invalid product id");
         }
+
         // Now we should convert fakeProductDto to Product
-       return convertFakeProductDtoToProduct(fakeProductDto);
+        product = convertFakeProductDtoToProduct(fakeProductDto);
+        redisTemplate.opsForHash().put("PRODUCTS","PRODUCT_" + id, product);
+        //This stores the product in the Redis cache using the "PRODUCTS" hash key and the "PRODUCT_" + id field.
+
+        return product;
 
         /*int a = 1 / 0;
         return null;*/
@@ -67,7 +87,7 @@ public class FakeStoreProductService implements ProductService{
     }
 
     @Override
-    public List<Product> getAllProducts() {
+    public Page<Product> getAllProducts(int pageNumber, int pageSize, String sortDir) {
         FakeProductDto[] fakeProductDtos = restTemplate.getForObject("https://fakestoreapi.com/products", FakeProductDto[].class);
         //int getForObject method we need response type
         List<Product> products = new ArrayList<>();
@@ -77,7 +97,7 @@ public class FakeStoreProductService implements ProductService{
         }
 
 
-        return products;
+        return new PageImpl<>(products);
     }
 
     @Override
