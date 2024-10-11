@@ -34,7 +34,7 @@ public class ProductControllers {
 //    private final PagedResourcesAssembler<Product> pagedResourcesAssembler;
     private RestTemplate restTemplate;
 
-    public ProductControllers(@Qualifier("fakeStoreProductService") ProductService productService,
+    public ProductControllers(@Qualifier("selfProductService") ProductService productService,
                               RestTemplate restTemplate) {
         this.productService = productService;
         this.restTemplate = restTemplate;
